@@ -1,9 +1,8 @@
-# Manual, local release configuration for the i-doit Terraform provider.
+# Release configuration for the i-doit Terraform provider.
 #
-#   export GPG_FINGERPRINT=<your signing key>
-#   goreleaser release --clean
-#
-# There is intentionally no CI wiring for this project; run GoReleaser by hand.
+# Triggered from .github/workflows/release.yml on tags matching v*, and usable
+# locally with `goreleaser release --clean` (needs GPG_FINGERPRINT in the env)
+# or `goreleaser release --clean --snapshot` for an unsigned dry run.
 version: 2
 
 before:
@@ -19,24 +18,29 @@ builds:
     ldflags:
       - '-s -w -X main.version={{ .Version }}'
     goos:
+      - freebsd
+      - windows
       - linux
       - darwin
-      - windows
-      - freebsd
     goarch:
       - amd64
-      - arm64
       - '386'
+      - arm
+      - arm64
     ignore:
       - goos: darwin
         goarch: '386'
     binary: '{{ .ProjectName }}_v{{ .Version }}'
 
 archives:
-  - format: zip
+  - formats:
+      - zip
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 
 checksum:
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
 
@@ -52,7 +56,11 @@ signs:
       - "${artifact}"
 
 release:
-  disable: true
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  draft: false
+  prerelease: auto
 
 changelog:
   disable: true

@@ -174,12 +174,30 @@ make docs
 
 ## Releasing
 
-There is no CI. Produce local artifacts by hand with
-[GoReleaser](https://goreleaser.com/):
+Releases are cut by the `release` GitHub Actions workflow
+(`.github/workflows/release.yml`) when a `v*` tag is pushed. It runs
+[GoReleaser](https://goreleaser.com/) to build the cross-platform archives,
+writes `SHA256SUMS`, GPG-signs them and the registry manifest, and publishes a
+GitHub Release in the Terraform Registry layout.
+
+Required repository secrets:
+
+| Secret | Purpose |
+|---|---|
+| `GPG_PRIVATE_KEY` | ASCII-armored private signing key |
+| `PASSPHRASE` | passphrase for that key |
+
+Cut a release:
 
 ```bash
-export GPG_FINGERPRINT=<your key>
-goreleaser release --clean
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Local dry run (no signing):
+
+```bash
+goreleaser release --clean --snapshot
 ```
 
 ## License
