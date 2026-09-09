@@ -48,8 +48,7 @@ func (c *Client) ReadCategory(ctx context.Context, objectID int64, category stri
 	}
 	var raw json.RawMessage
 	if err := c.Request(ctx, "cmdb.category.read", params, &raw); err != nil {
-		var rpcErr *RPCError
-		if errors.As(err, &rpcErr) {
+		if IsNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
@@ -129,12 +128,9 @@ func (c *Client) DeleteCategoryEntry(ctx context.Context, objectID int64, catego
 		"entry":    entryID,
 	}
 	err := c.Request(ctx, "cmdb.category.delete", params, nil)
-	if err != nil {
-		var rpcErr *RPCError
-		if errors.As(err, &rpcErr) {
-			// Already gone.
-			return nil
-		}
+	if err != nil && IsNotFound(err) {
+		// Already gone.
+		return nil
 	}
 	return err
 }

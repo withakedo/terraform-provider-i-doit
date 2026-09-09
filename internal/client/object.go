@@ -90,9 +90,10 @@ func (c *Client) ReadObject(ctx context.Context, id int64) (*Object, error) {
 
 	var raw json.RawMessage
 	if err := c.Request(ctx, "cmdb.object.read", params, &raw); err != nil {
-		var rpcErr *RPCError
-		if errors.As(err, &rpcErr) {
-			// i-doit answers with an error for unknown / purged objects.
+		// Only a genuine "object does not exist" error means the resource is
+		// gone; auth / permission / server errors must be surfaced so a
+		// healthy object is never dropped from state.
+		if IsNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
