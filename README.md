@@ -1,5 +1,8 @@
 # Terraform Provider for i-doit
 
+[![ci](https://github.com/withakedo/terraform-provider-i-doit/actions/workflows/ci.yml/badge.svg)](https://github.com/withakedo/terraform-provider-i-doit/actions/workflows/ci.yml)
+[![release](https://github.com/withakedo/terraform-provider-i-doit/actions/workflows/release.yml/badge.svg)](https://github.com/withakedo/terraform-provider-i-doit/actions/workflows/release.yml)
+
 Manage [i-doit](https://www.i-doit.com/) CMDB objects and their category fields
 declaratively through the i-doit JSON-RPC API.
 
@@ -22,8 +25,11 @@ and ships a small, dependency-free JSON-RPC client (a single `POST` endpoint,
 - Data sources: `idoit_object`, `idoit_objects`, `idoit_object_type`,
   `idoit_layer3_net`.
 - API-key auth plus optional session auth (`idoit.login` / `idoit.logout`).
-- Configurable `request_timeout`, `max_retries` (exponential backoff) and
-  `insecure_skip_verify`.
+- Configurable `request_timeout`, `max_retries` (exponential backoff),
+  `max_concurrent_requests` and full TLS control (`insecure_skip_verify`,
+  custom `ca_cert`, mutual-TLS `client_cert` / `client_key`, `tls_server_name`).
+- Precise not-found handling: only a genuine "object does not exist" API error
+  removes a resource from state; auth and server errors are surfaced.
 - Every setting can come from an environment variable; all secrets are marked
   `sensitive`.
 - `terraform import` for every resource.
@@ -89,7 +95,12 @@ provider "idoit" {
 | `password` | `IDOIT_PASSWORD` | – | sensitive |
 | `request_timeout` | – | `60` | seconds, per request |
 | `max_retries` | – | `3` | retries on network / 429 / 5xx |
+| `max_concurrent_requests` | – | `10` | in-flight request cap; `0` = unlimited |
 | `insecure_skip_verify` | – | `false` | |
+| `ca_cert` | `IDOIT_CA_CERT` | – | PEM data or path to a PEM file |
+| `client_cert` | `IDOIT_CLIENT_CERT` | – | mutual TLS; PEM data or path |
+| `client_key` | `IDOIT_CLIENT_KEY` | – | sensitive; PEM data or path |
+| `tls_server_name` | `IDOIT_TLS_SERVER_NAME` | – | SNI / cert host override |
 | `language` | `IDOIT_LANGUAGE` | `en` | |
 
 On configure the provider calls `idoit.version` to verify reachability and
@@ -205,6 +216,20 @@ make testacc
 
 The bundled acceptance tests target the public demo instance at
 `https://demo.i-doit.com/src/jsonrpc.php`.
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs `go build`, `go vet`, `go test` and
+`staticcheck` on every push and pull request. On pushes to `main` it also
+regenerates `go.sum` and re-applies `gofmt`, committing the result, so the
+module stays reproducible without a `go.sum` maintained by hand.
+
+Lint locally with either:
+
+```bash
+make staticcheck        # go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+make lint               # golangci-lint run (install golangci-lint separately)
+```
 
 ## Documentation
 
