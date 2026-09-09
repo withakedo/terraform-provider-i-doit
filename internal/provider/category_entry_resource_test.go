@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 // TestAccCategoryEntryResource exercises idoit_category_entry against the global
@@ -38,7 +39,7 @@ func TestAccCategoryEntryResource(t *testing.T) {
 				ResourceName:      "idoit_category_entry.model",
 				ImportState:       true,
 				ImportStateVerify: false,
-				ImportStateIdFunc: func(s *resource.State) (string, error) {
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					rs, ok := s.RootModule().Resources["idoit_category_entry.model"]
 					if !ok {
 						return "", fmt.Errorf("resource idoit_category_entry.model not found in state")
