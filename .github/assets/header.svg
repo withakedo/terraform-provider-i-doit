@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="190" viewBox="0 0 900 190" fill="none" role="img" aria-label="terraform-provider-i-doit — manage the i-doit CMDB as code">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="900" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#12161c"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7B42BC"/>
+      <stop offset="0.55" stop-color="#a371f7"/>
+      <stop offset="1" stop-color="#3fb950"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1.5" fill="#ffffff" fill-opacity="0.04"/>
+    </pattern>
+    <path id="wire" d="M214 150 H686"/>
+    <clipPath id="panel"><rect x="1" y="1" width="898" height="188" rx="18"/></clipPath>
+  </defs>
+
+  <rect x="1" y="1" width="898" height="188" rx="18" fill="url(#bg)" stroke="#30363d"/>
+
+  <g clip-path="url(#panel)">
+    <rect x="0" y="0" width="900" height="190" fill="url(#dots)"/>
+    <rect x="1" y="1" width="898" height="4" fill="url(#accent)"/>
+    <rect x="-380" y="-40" width="260" height="280" fill="url(#sheen)" transform="skewX(-16)">
+      <animate attributeName="x" values="-380;1040" dur="6s" begin="1.2s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <g font-family="'Segoe UI',system-ui,Roboto,Helvetica,Arial,sans-serif">
+    <text x="44" y="70" fill="#e6edf3" font-size="32" font-weight="800" letter-spacing="-0.5">terraform-provider-<tspan fill="#3fb950">i-doit</tspan></text>
+    <text x="45" y="99" fill="#8b949e" font-size="14.5">The i-doit CMDB, managed as code &#8212; objects &#183; categories &#183; L2/L3 networks &#183; IPAM</text>
+  </g>
+
+  <g font-family="'Segoe UI',system-ui,Roboto,Arial,sans-serif">
+    <rect x="44" y="133" width="170" height="34" rx="17" fill="#12161c" stroke="#8957e5"/>
+    <text x="129" y="155" text-anchor="middle" fill="#c8a2f0" font-size="13" font-weight="600">Terraform</text>
+
+    <use xlink:href="#wire" stroke="#30363d" stroke-width="2"/>
+    <use xlink:href="#wire" stroke="url(#accent)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 8">
+      <animate attributeName="stroke-dashoffset" values="0;-14" dur="0.9s" repeatCount="indefinite"/>
+    </use>
+
+    <circle r="9" fill="#3fb950" fill-opacity="0.22">
+      <animateMotion dur="2.4s" repeatCount="indefinite" calcMode="linear">
+        <mpath xlink:href="#wire"/>
+      </animateMotion>
+    </circle>
+    <circle r="4.5" fill="#3fb950">
+      <animateMotion dur="2.4s" repeatCount="indefinite" calcMode="linear">
+        <mpath xlink:href="#wire"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="2.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <rect x="686" y="133" width="170" height="34" rx="17" fill="#12161c" stroke="#2ea043"/>
+    <text x="771" y="155" text-anchor="middle" fill="#7ee2a0" font-size="13" font-weight="600">i-doit JSON-RPC</text>
+  </g>
+</svg>
