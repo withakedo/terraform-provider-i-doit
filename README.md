@@ -41,8 +41,10 @@ with a small, dependency-free JSON-RPC client that talks to a single endpoint,
 
 |  | |
 |---|---|
-| 🧱 **`idoit_object`** | Create / read / update / archive / purge any CMDB object. `terraform import` by numeric id. |
+| 🧱 **`idoit_object`** | Create / read / update / archive / purge any CMDB object — with writable `cmdb_status` and `template_id` cloning. `terraform import` by numeric id. |
+| 🔗 **`idoit_object_relation`** | Model relations between two objects (`C__CATG__RELATION`) — master, slave, relation type. |
 | 🗂 **`idoit_category_entry`** | Generic read/write for any global (`C__CATG__*`) or specific (`C__CATS__*`) category — **one entry per resource**, so multi-value categories work naturally. |
+| 🔽 **`idoit_dialog_value`** | Manage the selectable values of a dialog / dialog+ drop-down attribute (`cmdb.dialog.*`), including hierarchical dialog+ trees. |
 | 🌐 **`idoit_layer3_net` · `idoit_layer2_net` · `idoit_ip`** | Typed Layer-3 net, Layer-2 VLAN and IP-assignment resources for networking & IPAM, each with an `extra = {}` escape hatch for version-specific attribute keys. |
 | 🔎 **Data sources** | `idoit_object`, `idoit_objects`, `idoit_object_type`, `idoit_layer3_net`. |
 | 🔐 **Auth & TLS** | API-key auth, optional session login (`idoit.login`/`idoit.logout`), custom CA bundle, mutual TLS, SNI override, `insecure_skip_verify`. |
@@ -98,7 +100,9 @@ resource "idoit_category_entry" "web01_model" {
 | Type | Name | i-doit mapping | `terraform import` id |
 |---|---|---|---|
 | resource | `idoit_object` | `cmdb.object.*` | `42` |
+| resource | `idoit_object_relation` | `C__CATG__RELATION` | `1234/17` |
 | resource | `idoit_category_entry` | `cmdb.category.save/read/delete` | `42/C__CATG__MODEL/17` |
+| resource | `idoit_dialog_value` | `cmdb.dialog.*` | `C__CATG__MODEL/manufacturer/42` |
 | resource | `idoit_layer3_net` | `C__OBJTYPE__LAYER3_NET` + `C__CATS__NET` | `1234` |
 | resource | `idoit_layer2_net` | `C__OBJTYPE__LAYER2_NET` + `C__CATS__LAYER2_NET` | `1235` |
 | resource | `idoit_ip` | `C__CATG__IP` on an object | `42/17` |
@@ -373,9 +377,7 @@ goreleaser release --clean --snapshot        # local, unsigned dry run
 ## 🗺 Roadmap
 
 - [x] **Hardening pass** — committed `go.sum` + CI, client unit tests, precise not-found handling, concurrency cap, TLS trust / mTLS options &nbsp;`v0.3.0`
-- [ ] `idoit_object_relation` resource
-- [ ] `idoit_dialog_value` resource — manage dialog+ option lists
-- [ ] Writable CMDB status on `idoit_object`
+- [x] **New resources** — `idoit_object_relation`, `idoit_dialog_value`, writable `cmdb_status` + `template_id` on `idoit_object` &nbsp;`v0.4.0`
 - [ ] `idoit_next_free_ip` data source
 - [ ] `idoit_layer2_nets` / `idoit_layer3_nets` list data sources
 - [ ] Schema validators (`ipv4` / `cidr` / `vlan_id` range) and provider functions

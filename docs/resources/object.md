@@ -31,6 +31,12 @@ resource "idoit_object" "web01" {
 
 ### Optional
 
+- `cmdb_status` (String) CMDB status to assign, as a constant
+  (e.g. `C__CMDB_STATUS__IN_OPERATION`) or a numeric id. Written on create via
+  `cmdb.object.create` and on update via the `C__CATG__GLOBAL` category. Not
+  drift-tracked; the resulting label is exposed in `status`.
+- `template_id` (Number) Object id of a template object to clone on create
+  (`cmdb.object.create` `template` parameter). Changing this forces a new object.
 - `purge_on_destroy` (Boolean) When `true`, `terraform destroy` calls
   `cmdb.object.purge` (irreversible). When `false` (default) it calls
   `cmdb.object.archive`, which can be restored in i-doit.

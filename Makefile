@@ -1,5 +1,5 @@
 BINARY   := terraform-provider-i-doit
-VERSION  ?= 0.3.0
+VERSION  ?= 0.4.0
 OS_ARCH  ?= $(shell go env GOOS)_$(shell go env GOARCH)
 PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/withakedo/i-doit/$(VERSION)/$(OS_ARCH)
 
