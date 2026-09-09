@@ -200,6 +200,9 @@ func (p *idoitProvider) Resources(_ context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		NewObjectResource,
 		NewCategoryEntryResource,
+		NewLayer3NetResource,
+		NewLayer2NetResource,
+		NewIPResource,
 	}
 }
 
@@ -208,6 +211,7 @@ func (p *idoitProvider) DataSources(_ context.Context) []func() datasource.DataS
 		NewObjectDataSource,
 		NewObjectsDataSource,
 		NewObjectTypeDataSource,
+		NewLayer3NetDataSource,
 	}
 }
 

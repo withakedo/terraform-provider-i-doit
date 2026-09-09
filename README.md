@@ -14,13 +14,19 @@ and ships a small, dependency-free JSON-RPC client (a single `POST` endpoint,
 - `idoit_category_entry` – attach arbitrary global (`C__CATG__*`) or specific
   (`C__CATS__*`) category data to an object, one entry per resource, so
   multi-value categories work naturally.
-- Data sources: `idoit_object`, `idoit_objects`, `idoit_object_type`.
+- Typed network resources: `idoit_layer3_net` (`C__OBJTYPE__LAYER3_NET` +
+  `C__CATS__NET`), `idoit_layer2_net` (VLAN, `C__OBJTYPE__LAYER2_NET` +
+  `C__CATS__LAYER2_NET`) and `idoit_ip` (`C__CATG__IP` address assignment into a
+  Layer-3 net). Each has typed fields for the common attributes plus an `extra`
+  passthrough for version-specific keys.
+- Data sources: `idoit_object`, `idoit_objects`, `idoit_object_type`,
+  `idoit_layer3_net`.
 - API-key auth plus optional session auth (`idoit.login` / `idoit.logout`).
 - Configurable `request_timeout`, `max_retries` (exponential backoff) and
   `insecure_skip_verify`.
 - Every setting can come from an environment variable; all secrets are marked
   `sensitive`.
-- `terraform import` for both resources.
+- `terraform import` for every resource.
 
 ## Requirements
 
@@ -125,11 +131,48 @@ resource "idoit_category_entry" "web01_ip" {
 
 See [`examples/`](./examples) for more, including data sources.
 
+### Networks (L2 / L3)
+
+```hcl
+resource "idoit_layer3_net" "servers" {
+  title       = "10.0.0.0/24 - servers"
+  type        = "ipv4"
+  address     = "10.0.0.0"
+  cidr_suffix = "24"
+  dns_server  = "10.0.0.1"
+  range_from  = "10.0.0.10"
+  range_to    = "10.0.0.250"
+}
+
+resource "idoit_layer2_net" "vlan100" {
+  title          = "VLAN 100 - servers"
+  vlan_id        = "100"
+  layer3_net_ids = [idoit_layer3_net.servers.id]
+}
+
+resource "idoit_ip" "web01" {
+  object_id    = idoit_object.web01.id
+  net_id       = idoit_layer3_net.servers.id
+  ipv4_address = "10.0.0.11"
+  hostname     = "web01"
+  primary      = true
+}
+```
+
+The typed fields cover the common attributes; the exact `C__CATS__NET` /
+`C__CATS__LAYER2_NET` / `C__CATG__IP` keys vary between i-doit versions, so each
+net resource also takes an `extra = { ... }` map that is merged into the category
+payload untouched, and everything remains reachable through the generic
+`idoit_category_entry`.
+
 ### Importing
 
 ```bash
 terraform import idoit_object.web01 42
 terraform import idoit_category_entry.web01_model 42/C__CATG__MODEL/17
+terraform import idoit_layer3_net.servers 1234
+terraform import idoit_layer2_net.vlan100 1235
+terraform import idoit_ip.web01 42/17
 ```
 
 ## Category `data`
