@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,6 +36,8 @@ type objectResourceModel struct {
 	ID             types.String `tfsdk:"id"`
 	Type           types.String `tfsdk:"type"`
 	Title          types.String `tfsdk:"title"`
+	CmdbStatus     types.String `tfsdk:"cmdb_status"`
+	TemplateID     types.Int64  `tfsdk:"template_id"`
 	PurgeOnDestroy types.Bool   `tfsdk:"purge_on_destroy"`
 	SysID          types.String `tfsdk:"sysid"`
 	Status         types.String `tfsdk:"status"`
@@ -61,6 +64,15 @@ func (r *objectResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"title": schema.StringAttribute{
 				MarkdownDescription: "Object title.",
 				Required:            true,
+			},
+			"cmdb_status": schema.StringAttribute{
+				MarkdownDescription: "CMDB status to assign, as a constant (e.g. `C__CMDB_STATUS__IN_OPERATION`) or a numeric id. Written on create via `cmdb.object.create` and on update via the `" + catGlobal + "` category. Not drift-tracked; the resulting label is exposed in `status`.",
+				Optional:            true,
+			},
+			"template_id": schema.Int64Attribute{
+				MarkdownDescription: "Object id of a template object to clone when the object is created (`cmdb.object.create` `template` parameter). Changing this forces a new object.",
+				Optional:            true,
+				PlanModifiers:       []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 			},
 			"purge_on_destroy": schema.BoolAttribute{
 				MarkdownDescription: "When `true`, `terraform destroy` calls `cmdb.object.purge` (irreversible). When `false` (default) it calls `cmdb.object.archive`, which can be restored in i-doit.",
@@ -102,7 +114,12 @@ func (r *objectResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	id, err := r.client.CreateObject(ctx, plan.Type.ValueString(), plan.Title.ValueString())
+	id, err := r.client.CreateObjectFull(ctx,
+		plan.Type.ValueString(),
+		plan.Title.ValueString(),
+		plan.CmdbStatus.ValueString(),
+		plan.TemplateID.ValueInt64(),
+	)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to create i-doit object", err.Error())
 		return
@@ -185,6 +202,17 @@ func (r *objectResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if plan.Title.ValueString() != state.Title.ValueString() {
 		if err := r.client.UpdateObjectTitle(ctx, id, plan.Title.ValueString()); err != nil {
 			resp.Diagnostics.AddError("Unable to update i-doit object", err.Error())
+			return
+		}
+	}
+
+	if !plan.CmdbStatus.IsNull() && plan.CmdbStatus.ValueString() != state.CmdbStatus.ValueString() {
+		entryID := int64(0)
+		if e, _ := firstCategoryEntry(ctx, r.client, id, catGlobal); e != nil {
+			entryID = e.EntryID()
+		}
+		if _, err := r.client.SaveCategory(ctx, id, catGlobal, map[string]any{"cmdb_status": plan.CmdbStatus.ValueString()}, entryID); err != nil {
+			resp.Diagnostics.AddError("Unable to update CMDB status", err.Error())
 			return
 		}
 	}
