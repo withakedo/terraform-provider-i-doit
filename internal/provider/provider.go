@@ -248,7 +248,9 @@ func (p *idoitProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *idoitProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewObjectResource,
+		NewObjectRelationResource,
 		NewCategoryEntryResource,
+		NewDialogValueResource,
 		NewLayer3NetResource,
 		NewLayer2NetResource,
 		NewIPResource,
