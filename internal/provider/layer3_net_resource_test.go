@@ -35,7 +35,7 @@ func TestAccLayer3NetResource(t *testing.T) {
 			},
 			{
 				Config: testAccLayer3NetConfig(title, "25"),
-				Check: resource.TestCheckResourceAttr("idoit_layer3_net.test", "cidr_suffix", "25"),
+				Check:  resource.TestCheckResourceAttr("idoit_layer3_net.test", "cidr_suffix", "25"),
 			},
 		},
 	})
