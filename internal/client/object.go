@@ -69,9 +69,22 @@ type createObjectResult struct {
 
 // CreateObject creates a CMDB object and returns its numeric id.
 func (c *Client) CreateObject(ctx context.Context, objType, title string) (int64, error) {
+	return c.CreateObjectFull(ctx, objType, title, "", 0)
+}
+
+// CreateObjectFull creates a CMDB object, optionally setting its CMDB status
+// (constant or numeric id, empty to leave the default) and cloning it from a
+// template object (templateID > 0). It returns the new object id.
+func (c *Client) CreateObjectFull(ctx context.Context, objType, title, cmdbStatus string, templateID int64) (int64, error) {
 	params := map[string]any{
 		"type":  objType,
 		"title": title,
+	}
+	if cmdbStatus != "" {
+		params["status"] = cmdbStatus
+	}
+	if templateID > 0 {
+		params["template"] = templateID
 	}
 	var res createObjectResult
 	if err := c.Request(ctx, "cmdb.object.create", params, &res); err != nil {
@@ -117,7 +130,20 @@ func (c *Client) ReadObject(ctx context.Context, id int64) (*Object, error) {
 
 // UpdateObjectTitle updates the object title (the only mutable core attribute).
 func (c *Client) UpdateObjectTitle(ctx context.Context, id int64, title string) error {
-	params := map[string]any{"id": id, "title": title}
+	return c.UpdateObject(ctx, id, map[string]any{"title": title})
+}
+
+// UpdateObject sends the given fields to cmdb.object.update. Supported keys
+// depend on the i-doit version; "title" is universal, "status" (CMDB status,
+// constant or id) is accepted by recent versions.
+func (c *Client) UpdateObject(ctx context.Context, id int64, fields map[string]any) error {
+	if len(fields) == 0 {
+		return nil
+	}
+	params := map[string]any{"id": id}
+	for k, v := range fields {
+		params[k] = v
+	}
 	return c.Request(ctx, "cmdb.object.update", params, nil)
 }
 
