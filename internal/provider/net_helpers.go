@@ -15,9 +15,11 @@ const (
 	objTypeLayer3Net = "C__OBJTYPE__LAYER3_NET"
 	objTypeLayer2Net = "C__OBJTYPE__LAYER2_NET"
 
-	catL3Net = "C__CATS__NET"
-	catL2Net = "C__CATS__LAYER2_NET"
-	catIP    = "C__CATG__IP"
+	catL3Net    = "C__CATS__NET"
+	catL2Net    = "C__CATS__LAYER2_NET"
+	catIP       = "C__CATG__IP"
+	catRelation = "C__CATG__RELATION"
+	catGlobal   = "C__CATG__GLOBAL"
 
 	netTypeIPv4Const = "C__CATS_NET_TYPE__IPV4"
 	netTypeIPv6Const = "C__CATS_NET_TYPE__IPV6"
