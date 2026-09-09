@@ -8,7 +8,6 @@ package client
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -48,6 +47,18 @@ type Config struct {
 	MaxRetries         int
 	InsecureSkipVerify bool
 
+	// MaxConcurrentRequests caps the number of in-flight HTTP requests. A value
+	// of 0 means unlimited.
+	MaxConcurrentRequests int
+
+	// TLS trust and client-authentication material. Each value is either inline
+	// PEM data (recognised by a "-----BEGIN" marker) or a path to a PEM file.
+	CACert     string
+	ClientCert string
+	ClientKey  string
+	// TLSServerName overrides the SNI / certificate host name sent to the server.
+	TLSServerName string
+
 	UserAgent string
 }
 
@@ -63,6 +74,9 @@ type Client struct {
 	userAgent  string
 
 	httpClient *http.Client
+
+	// sem bounds concurrent in-flight requests when non-nil.
+	sem chan struct{}
 
 	idCounter uint64
 
@@ -101,11 +115,17 @@ func New(cfg Config) (*Client, error) {
 	}
 
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	if cfg.InsecureSkipVerify {
-		if transport.TLSClientConfig == nil {
-			transport.TLSClientConfig = &tls.Config{} //nolint:gosec // opt-in via provider config
-		}
-		transport.TLSClientConfig.InsecureSkipVerify = true
+	tlsCfg, err := buildTLSConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	if tlsCfg != nil {
+		transport.TLSClientConfig = tlsCfg
+	}
+
+	var sem chan struct{}
+	if cfg.MaxConcurrentRequests > 0 {
+		sem = make(chan struct{}, cfg.MaxConcurrentRequests)
 	}
 
 	return &Client{
@@ -118,6 +138,7 @@ func New(cfg Config) (*Client, error) {
 		maxRetries: retries,
 		userAgent:  ua,
 		httpClient: &http.Client{Transport: transport},
+		sem:        sem,
 	}, nil
 }
 
@@ -201,6 +222,15 @@ func (c *Client) call(ctx context.Context, method string, params map[string]any,
 
 // doRequest performs exactly one HTTP round trip.
 func (c *Client) doRequest(ctx context.Context, method string, payload []byte, extraHeaders map[string]string) (json.RawMessage, error) {
+	if c.sem != nil {
+		select {
+		case c.sem <- struct{}{}:
+			defer func() { <-c.sem }()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
 	attemptCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -279,9 +309,16 @@ func retryable(err error) bool {
 	return errors.As(err, &ne)
 }
 
+// backoffBase is the first retry delay; it grows exponentially per attempt. It
+// is a variable so tests can shrink it.
+var backoffBase = 500 * time.Millisecond
+
 func backoff(attempt int) time.Duration {
-	const base = 500 * time.Millisecond
 	const maxWait = 30 * time.Second
+	base := backoffBase
+	if base <= 0 {
+		return 0
+	}
 	d := time.Duration(float64(base) * math.Pow(2, float64(attempt-1)))
 	if d > maxWait {
 		d = maxWait

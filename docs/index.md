@@ -59,6 +59,16 @@ Every argument can also be supplied through an environment variable.
 - `request_timeout` (Number) Per-request timeout in seconds. Defaults to `60`.
 - `max_retries` (Number) Retries with exponential backoff for transient
   failures (network errors, HTTP 429/5xx). Defaults to `3`.
+- `max_concurrent_requests` (Number) Cap on in-flight HTTP requests against the
+  API. `0` means unlimited. Defaults to `10`.
 - `insecure_skip_verify` (Boolean) Disable TLS certificate verification.
   Defaults to `false`.
+- `ca_cert` (String) Custom CA certificate(s) to trust, as inline PEM data or a
+  path to a PEM file. Env: `IDOIT_CA_CERT`.
+- `client_cert` (String) Client certificate for mutual TLS, as inline PEM data
+  or a path to a PEM file. Requires `client_key`. Env: `IDOIT_CLIENT_CERT`.
+- `client_key` (String, Sensitive) Private key for `client_cert`. Env:
+  `IDOIT_CLIENT_KEY`.
+- `tls_server_name` (String) Override the server name used for SNI and
+  certificate verification. Env: `IDOIT_TLS_SERVER_NAME`.
 - `language` (String) API language. Defaults to `en`. Env: `IDOIT_LANGUAGE`.
