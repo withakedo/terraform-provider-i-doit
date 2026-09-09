@@ -1,5 +1,5 @@
 BINARY   := terraform-provider-i-doit
-VERSION  ?= 0.1.0
+VERSION  ?= 0.3.0
 OS_ARCH  ?= $(shell go env GOOS)_$(shell go env GOARCH)
 PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/withakedo/i-doit/$(VERSION)/$(OS_ARCH)
 
@@ -13,6 +13,8 @@ help:
 	@echo "  tidy            go mod tidy"
 	@echo "  fmt             gofmt -s -w"
 	@echo "  vet             go vet ./..."
+	@echo "  lint            golangci-lint run (install it separately)"
+	@echo "  staticcheck     staticcheck ./..."
 	@echo "  test            Unit tests"
 	@echo "  testacc         Acceptance tests (needs TF_ACC=1 and IDOIT_URL / IDOIT_APIKEY)"
 	@echo "  docs            Regenerate docs/ with tfplugindocs"
@@ -38,6 +40,14 @@ fmt:
 .PHONY: vet
 vet:
 	go vet ./...
+
+.PHONY: lint
+lint:
+	golangci-lint run
+
+.PHONY: staticcheck
+staticcheck:
+	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
 
 .PHONY: test
 test:

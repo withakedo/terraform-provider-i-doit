@@ -1,0 +1,31 @@
+# golangci-lint configuration (v1 schema).
+# Run locally with `make lint`. CI runs `go vet` + `staticcheck` directly, so a
+# missing golangci-lint binary never blocks the pipeline.
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gosimple
+    - misspell
+    - unconvert
+    - bodyclose
+    - gofmt
+
+linters-settings:
+  gofmt:
+    simplify: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - bodyclose
